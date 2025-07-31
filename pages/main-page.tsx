@@ -1,6 +1,7 @@
 import { Text, TouchableOpacity, StyleSheet, SafeAreaView, View, TextInput, Image, TouchableWithoutFeedback,
   Keyboard, KeyboardAvoidingView, Platform, Dimensions } from "react-native";
-import { useState, useEffect } from "react";
+import debounce from "lodash/debounce";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import AntDesign from '@expo/vector-icons/AntDesign';
 //import Footer from "../components/main/Footer";
@@ -29,51 +30,26 @@ const MainPage: React.FC = () => {
   const [isSendClicked, setIsSendClicked] = useState<boolean>(false);
   const [warningMessage, setWarningMessage] = useState<string>('');
   const [isTextAreaFocused, setIsTextAreaFocused] = useState<boolean>(false);
-  const [nickname, setNickname] = useState<string | null>(null);
-  const [imageData, setImageData] = useState<string | null>(null);
-  const [ocrText, setOcrText] = useState<string | null>(null);
   const [buttonData, setButtonData] = useState<ButtonData[]>([
     { label: '작품 소개', isClicked: true },
     { label: '작가 소개', isClicked: true },
-    { label: '작품 배경', isClicked: false },
-    { label: '관람 포인트', isClicked: false },
-    { label: '미술사', isClicked: false },
+    { label: '작품 배경', isClicked: true },
+    { label: '관람 포인트', isClicked: true },
+    { label: '미술사', isClicked: true },
   ]);
 
-  // Fetching nickname from AsyncStorage
-  // useEffect(() => {
-  //   const fetchUserData = async () => {
-  //     try {
-  //       const nickname = await AsyncStorage.getItem('nickname');
-  //       if (!nickname) {
-  //         navigation.navigate('Login'); // Redirect if no nickname
-  //       } else {
-  //         setNickname(nickname);
-  //       }
-  //     } catch (error) {
-  //       console.error(error);
-  //       navigation.navigate('Login');
-  //     }
-  //   };
-  //   fetchUserData();
-  // }, []);
+  const debouncedHandleTextChange = useMemo(
+  () =>
+    debounce((value: string) => {
+      console.log("API 요청할 값:", value);
+    }, 300),
+  []
+);
 
-  // ocr
-  // const handleImageUpload = async () => {
-  //   const result = await ImagePicker.launchImageLibrary({
-  //     mediaType: 'photo',
-  //     includeBase64: true,
-  //   });
-  //   if (result.assets && result.assets.length > 0) {
-  //     setImageData(result.assets[0].uri); // Store image URI
-  //     navigation.navigate('OcrPage', { image: result.assets[0].uri });
-  //   }
-  // };
-
-  // "ㅇ", "아", "안" 모두 호출됨(수정)
   const handleTextChange = (value: string) => {
-    setText(value);
+    setText(value); // UI에는 즉시 반영
     setIsSendClicked(value.length > 0);
+    debouncedHandleTextChange(value);
   };
 
   const handleClick = (index: number) => {
@@ -123,8 +99,9 @@ const MainPage: React.FC = () => {
                   <Text style={styles.warningText}>{warningMessage}</Text>
                 </View>
               )}
-              <Text style={styles.title}>{nickname}궁금한 작품이 있나요?</Text>
+              <Text style={styles.title}>궁금한 작품이 있나요?</Text>
               <Text style={styles.subtitle}>지금 질문해 보세요</Text>
+              <Text style={styles.instructions}>디바운스 후 값: {text}</Text>
               <Text style={styles.instructions}>원하는 설명 키워드를 모두 골라주세요</Text>
               <View style={styles.buttonContainer}>
                 {buttonData.map((button, index) => (

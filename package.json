@@ -16,6 +16,7 @@
     "expo-linear-gradient": "~14.1.5",
     "expo-speech": "~13.1.7",
     "expo-status-bar": "~2.2.3",
+    "lodash": "^4.17.21",
     "react": "19.0.0",
     "react-native": "0.79.5",
     "react-native-gesture-handler": "~2.24.0",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@types/lodash": "^4.17.20",
     "@types/react": "~19.0.10",
     "typescript": "~5.8.3"
   },

@@ -8,7 +8,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import * as Speech from 'expo-speech';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
-//import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const PlayerPage: React.FC = () => {
   const [author, setAuthor] = useState<string | null>(null);
@@ -30,51 +29,22 @@ const PlayerPage: React.FC = () => {
   const scrollViewRef = useRef<ScrollView | null>(null);
   const [lastBoundaryEvent, setLastBoundaryEvent] = useState({ charIndex: 0 });
   const [slicedText, setSlicedText] = useState<string | null>();
-  //const [isModalOpen, setIsModalOpen] = useState(false);
-  //const [hasSeenModal, setHasSeenModal] = useState(false); //최초 모달 1회 확인 여부
-
-  // const clearModalStatus = async () => {
-  //   try {
-  //     await AsyncStorage.removeItem('hasSeenModal');
-  //     console.log('Modal status cleared.');
-  //     setHasSeenModal(false); //상태도 초기화
-  //   } catch (error) {
-  //     console.error('Error clearing modal status:', error);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   const checkModalStatus = async () => {
-  //     try {
-  //       const seenModal = await AsyncStorage.getItem('hasSeenModal');
-  //       if (seenModal === null) {
-  //         setHasSeenModal(false); //최초 실행
-  //       } else {
-  //         setHasSeenModal(true); //이미 본 적 있음
-  //       }
-  //     } catch (error) {
-  //       console.error('Error checking modal status:', error);
-  //     }
-  //   };
-
-  //   checkModalStatus();
-  // }, []);
 
   useEffect(() => {
-    setAuthor(artworkData.author);
-    setWorkTitle(artworkData.workTitle);
-    setWorkIntro(artworkData.workIntro);
-    setAuthorIntro(artworkData.authorIntro);
-    setWorkBackground(artworkData.workBackground);
+    setAuthor(artworkData.artistName);
+    setWorkTitle(artworkData.artworkTitle);
+    setWorkIntro(artworkData.artworkDescription);
+    setAuthorIntro(artworkData.artistDescription);
+    setWorkBackground(artworkData.artworkBackground);
     setAppreciationPoint(artworkData.appreciationPoint);
-    setHistory(artworkData.history);
+    setHistory(artworkData.artHistory);
 
     const segments: [string, string][] = [
-        ["작품소개", artworkData.workIntro],
-        ["작가소개", artworkData.authorIntro],
-        ["작품배경", artworkData.workBackground],
+        ["작품소개", artworkData.artworkDescription],
+        ["작가소개", artworkData.artistDescription],
+        ["작품배경", artworkData.artworkBackground],
         ["감상포인트", artworkData.appreciationPoint],
-        ["미술사", artworkData.history],
+        ["미술사", artworkData.artHistory],
     ];
 
     setSegments(segments);
@@ -123,13 +93,6 @@ const PlayerPage: React.FC = () => {
   };
 
   const handlePlayPause  = async () => {
-    // if (!hasSeenModal) {
-    //   setIsModalOpen(true);
-    //   await AsyncStorage.setItem('hasSeenModal', 'true'); // 모달 본 적 있음 저장
-    //   setHasSeenModal(true);
-    //   return;
-    // }
-
     if (isPlaying) {
       Speech.stop(); 
       setIsPlaying(false);
@@ -205,7 +168,6 @@ const PlayerPage: React.FC = () => {
           </Text>
         ))}
         <View onLayout={onLastViewLayout} style={{ height: 150 }} />
-        {/* <Button title="Reset Modal Status" onPress={clearModalStatus} /> */}
       </Animated.ScrollView>
 
       <View style={styles.fixedButtonsContainer}>
@@ -224,13 +186,6 @@ const PlayerPage: React.FC = () => {
         isPlaying={isPlaying}
         handlePlayPause={handlePlayPause}
       />
-
-      {/* {isModalOpen && (
-        <FirstModal
-          onClose={() => setIsModalOpen(false)}
-          onCancel={() => setIsModalOpen(false)}
-        />
-      )} */}
     </SafeAreaView>
   );
 };
