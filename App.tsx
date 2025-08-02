@@ -6,8 +6,16 @@ import { useFonts } from 'expo-font';
 
 import PlayerPage from './pages/player-page';
 import MainPage from './pages/main-page';
+import LoadingPage from './pages/loading-page';
+import { DataProvider } from './DataContext';
 
-const Stack = createNativeStackNavigator();
+export type RootStackParamList = {
+  Main: undefined;
+  Loading: { requestData: { question: string; category: string } };
+  Player: { selectedCategories: string[] };
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   useFonts({
@@ -18,12 +26,15 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName="Player" screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Main" component={MainPage} />
-          <Stack.Screen name="Player" component={PlayerPage} />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <DataProvider>
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="Main" component={MainPage} />
+            <Stack.Screen name="Player" component={PlayerPage} />
+            <Stack.Screen name="Loading" component={LoadingPage} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </DataProvider>
     </View>
   );
 };
