@@ -7,6 +7,7 @@ interface AudioControlProps {
   author: string | null;
   isPlaying: boolean;
   handlePlayPause: () => void;
+  handleSearchNewWork: () => void;
 }
 
 const AudioControl: React.FC<AudioControlProps> = ({
@@ -14,6 +15,7 @@ const AudioControl: React.FC<AudioControlProps> = ({
   author,
   isPlaying,
   handlePlayPause,
+  handleSearchNewWork,
 }) => {
   return (
     <View style={styles.container}>
@@ -32,7 +34,7 @@ const AudioControl: React.FC<AudioControlProps> = ({
       </View>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button} onPress={handleSearchNewWork}>
           <Text style={styles.buttonText}>새로운 작품 검색</Text>
         </TouchableOpacity>
       </View>

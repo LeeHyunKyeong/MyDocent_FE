@@ -1,6 +1,6 @@
 import React, { createContext, useState, ReactNode } from 'react';
 
-interface ArtworkData {
+export interface ArtworkData {
   artistName: string;
   artworkTitle: string;
   artworkDescription: string;

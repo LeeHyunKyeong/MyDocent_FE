@@ -1,13 +1,21 @@
-import React from "react";
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { StyleSheet, Text, View, ScrollView, SafeAreaView, Animated } from 'react-native';
 import AudioControl from "../components/player/AudioControl";
 import AudioHeader from "../components/player/AudioHeader";
 import ThreeButtons from "../components/player/ThreeButtons";
+import FirstModal from '../components/player/FirstModal';
 import artworkData from '../artworkdata.json';
-import { useState, useEffect, useRef, useCallback } from 'react';
 import * as Speech from 'expo-speech';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
+import { DataContext, ArtworkData } from '../DataContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../App';
+
+type LoadingRouteProp = RouteProp<RootStackParamList, 'Player'>;
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Player'>;
 
 const PlayerPage: React.FC = () => {
   const [author, setAuthor] = useState<string | null>(null);
@@ -22,36 +30,90 @@ const PlayerPage: React.FC = () => {
   const [segmentHeights, setSegmentHeights] = useState<number[]>([]); // 각 문단의 높이를 저장할 배열
   const [isPlaying, setIsPlaying] = useState(false);
   const [rateIndex, setRateIndex] = useState(0);
-  const playbackRates = [1, 1.1, 1.2, 1.3, 1.4];
+  const playbackRates = [0.95, 1.05, 1.15, 1.25, 1.35];
   const displayRates = [1, 1.25, 1.5, 1.75, 2]; //화면에 표시할 값
   const currentRate = playbackRates[rateIndex]; 
   const [highlighted, setHighlighted] = useState(true);
   const scrollViewRef = useRef<ScrollView | null>(null);
   const [lastBoundaryEvent, setLastBoundaryEvent] = useState({ charIndex: 0 });
   const [slicedText, setSlicedText] = useState<string | null>();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [hasSeenModal, setHasSeenModal] = useState(false); //최초 모달 1회 확인 여부
+  
+  const navigation = useNavigation<NavigationProp>();
+  const route = useRoute<LoadingRouteProp>();
+  const { selectedCategories } = route.params;
+
+  // 매핑 객체
+  const categoryMap: Record<string, keyof ArtworkData> = {
+    "작품 소개": "artworkDescription",
+    "작가 소개": "artistDescription",
+    "작품 배경": "artworkBackground",
+    "관람 포인트": "appreciationPoint",
+    "미술사": "artHistory",
+  };
+
+  const context = useContext(DataContext);
+  if (!context) return <Text>데이터 없음</Text>;
+  const { artworkData } = context;
+
+  // const clearModalStatus = async () => {
+  //   try {
+  //     await AsyncStorage.removeItem('hasSeenModal');
+  //     console.log('Modal status cleared.');
+  //     setHasSeenModal(false); //상태도 초기화
+  //   } catch (error) {
+  //     console.error('Error clearing modal status:', error);
+  //   }
+  // };
 
   useEffect(() => {
+    const checkModalStatus = async () => {
+      try {
+        const seenModal = await AsyncStorage.getItem('hasSeenModal');
+        if (seenModal === null) {
+          setHasSeenModal(false); //최초 실행
+        } else {
+          setHasSeenModal(true); //이미 본 적 있음
+        }
+      } catch (error) {
+        console.error('Error checking modal status:', error);
+      }
+    };
+
+    checkModalStatus();
+  }, []);
+
+  useEffect(() => {
+    if (!artworkData) return;
     setAuthor(artworkData.artistName);
     setWorkTitle(artworkData.artworkTitle);
-    setWorkIntro(artworkData.artworkDescription);
-    setAuthorIntro(artworkData.artistDescription);
-    setWorkBackground(artworkData.artworkBackground);
-    setAppreciationPoint(artworkData.appreciationPoint);
-    setHistory(artworkData.artHistory);
 
     const segments: [string, string][] = [
-        ["작품소개", artworkData.artworkDescription],
-        ["작가소개", artworkData.artistDescription],
-        ["작품배경", artworkData.artworkBackground],
-        ["감상포인트", artworkData.appreciationPoint],
-        ["미술사", artworkData.artHistory],
+      ["작품 소개", artworkData.artworkDescription],
+      ["작가 소개", artworkData.artistDescription],
+      ["작품 배경", artworkData.artworkBackground],
+      ["관람 포인트", artworkData.appreciationPoint],
+      ["미술사", artworkData.artHistory],
     ];
 
-    setSegments(segments);
-  }, [artworkData]);
+    console.log("받은 selectedCategories:", selectedCategories);
+    console.log("segments 라벨:", segments.map(([label]) => label));
+
+    // 선택된 카테고리만 필터링
+    const filteredSegments = segments.filter(([label]) => {
+      const match = selectedCategories.includes(label);
+      console.log(`라벨: "${label}" → 매칭 여부: ${match}`);
+      return match;
+    });
+
+    console.log("필터링 결과:", filteredSegments.map(([label]) => label));
+
+    setSegments(filteredSegments);
+  }, [artworkData, selectedCategories]);
 
   useEffect(() => {
-    console.log("인덱스 바뀜",currentSegmentIndex)
+    //console.log("인덱스 바뀜",currentSegmentIndex)
     setLastBoundaryEvent({
       charIndex: 0,
     });
@@ -93,6 +155,13 @@ const PlayerPage: React.FC = () => {
   };
 
   const handlePlayPause  = async () => {
+    if (!hasSeenModal) {
+      setIsModalOpen(true);
+      await AsyncStorage.setItem('hasSeenModal', 'true'); // 모달 본 적 있음 저장
+      setHasSeenModal(true);
+      return;
+    }
+
     if (isPlaying) {
       Speech.stop(); 
       setIsPlaying(false);
@@ -164,7 +233,15 @@ const PlayerPage: React.FC = () => {
           >
             <Text>{title}</Text>
             {"\n"}
-            <Text>{content}</Text>
+            <Text>{content?.split('.')
+                .filter(sentence => sentence.trim().length > 0) // 빈 문자열 제거
+                .map((sentence, i) => (
+                  <Text key={i}>
+                    {sentence.trim() + '.'}
+                    {"\n"}
+                  </Text>
+                ))}</Text>
+            {"\n"}
           </Text>
         ))}
         <View onLayout={onLastViewLayout} style={{ height: 150 }} />
@@ -185,7 +262,14 @@ const PlayerPage: React.FC = () => {
         author={author}
         isPlaying={isPlaying}
         handlePlayPause={handlePlayPause}
+        handleSearchNewWork={() => navigation.navigate('Main')}
       />
+      {isModalOpen && (
+        <FirstModal
+          onClose={() => setIsModalOpen(false)}
+          onCancel={() => setIsModalOpen(false)}
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -208,7 +292,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   segment: {
-    fontSize: 20,
+    fontSize: 19,
     fontFamily: 'wantedSansRegular',
     paddingHorizontal: 20,
     lineHeight: 30,
