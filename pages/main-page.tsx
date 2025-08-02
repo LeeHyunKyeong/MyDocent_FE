@@ -1,9 +1,12 @@
 import { Text, TouchableOpacity, StyleSheet, SafeAreaView, View, TextInput, Image, TouchableWithoutFeedback,
   Keyboard, KeyboardAvoidingView, Platform, Dimensions } from "react-native";
 import debounce from "lodash/debounce";
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useMemo } from "react";
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import AntDesign from '@expo/vector-icons/AntDesign';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../App';
 //import Footer from "../components/main/Footer";
 
 interface ButtonData {
@@ -24,8 +27,11 @@ const Button: React.FC<{ button: ButtonData; onPress: () => void }> = ({ button,
 );
 
 const { height } = Dimensions.get('window');
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Main'>;
 
 const MainPage: React.FC = () => {
+  const navigation = useNavigation<NavigationProp>();
+
   const [text, setText] = useState<string>('');
   const [isSendClicked, setIsSendClicked] = useState<boolean>(false);
   const [warningMessage, setWarningMessage] = useState<string>('');
@@ -41,7 +47,7 @@ const MainPage: React.FC = () => {
   const debouncedHandleTextChange = useMemo(
   () =>
     debounce((value: string) => {
-      console.log("API 요청할 값:", value);
+      //console.log("API 요청할 값:", value);
     }, 300),
   []
 );
@@ -78,11 +84,15 @@ const MainPage: React.FC = () => {
     const selectedKeywords = buttonData
       .filter((button) => button.isClicked)
       .map((button) => button.label);
+    
+    console.log(selectedKeywords);
 
     const requestData = {
-      keyword: selectedKeywords,
-      text: text,
+      question: text,
+      category: selectedKeywords.join(', '), // 배열 → 문자열 변환
     };
+
+    navigation.navigate('Loading', { requestData });
   };
 
   return (
@@ -101,7 +111,6 @@ const MainPage: React.FC = () => {
               )}
               <Text style={styles.title}>궁금한 작품이 있나요?</Text>
               <Text style={styles.subtitle}>지금 질문해 보세요</Text>
-              <Text style={styles.instructions}>디바운스 후 값: {text}</Text>
               <Text style={styles.instructions}>원하는 설명 키워드를 모두 골라주세요</Text>
               <View style={styles.buttonContainer}>
                 {buttonData.map((button, index) => (
