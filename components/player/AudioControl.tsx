@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Button } from 'react-native';
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import React, { useState, useEffect } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, Button } from "react-native";
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 
 interface AudioControlProps {
   workTitle: string | null;
@@ -47,38 +47,38 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   infoContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 15,
   },
   workTitle: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 18,
-    fontFamily: 'wantedSansBold',
-    fontWeight: 'bold',
+    fontFamily: "wantedSansBold",
+    fontWeight: "bold",
     marginBottom: 3,
   },
   author: {
-    color: '#787B83',
-    fontFamily: 'wantedSansRegular',
+    color: "#787B83",
+    fontFamily: "wantedSansRegular",
     fontSize: 16,
   },
   buttonContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   button: {
-    width: '98%',
+    width: "98%",
     height: 48,
     borderRadius: 30,
     padding: 12,
-    backgroundColor: '#1B1E1F',
-    alignItems: 'center',
+    backgroundColor: "#1B1E1F",
+    alignItems: "center",
   },
   buttonText: {
-    fontFamily: 'wantedSansRegular',
-    color: 'white',
+    fontFamily: "wantedSansRegular",
+    color: "white",
     fontSize: 15,
   },
 });
